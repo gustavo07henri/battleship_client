@@ -33,6 +33,7 @@ export function Signup(){
     return (
         <div>
             <form
+                className={'form_data'}
                 onSubmit={handleSubmit}
             >
                 <label>E-mail</label>
@@ -53,6 +54,7 @@ export function Signup(){
                     <p className="error">{erro}</p>
                 )}
                 <button
+                    className={'default_button'}
                     type="submit"
                 >Cadastro</button>
             </form>

@@ -35,6 +35,7 @@ export function Login(){
     return (
         <div>
             <form
+                className={'form_data'}
                 onSubmit={handleSubmit}
             >
                 <label>E-mail</label>
@@ -55,6 +56,7 @@ export function Login(){
                     <p className="error">{erro}</p>
                 )}
                 <button
+                    className={'default_button'}
                     type="submit"
                 >Login</button>
             </form>
