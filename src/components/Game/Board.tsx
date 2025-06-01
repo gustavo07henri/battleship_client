@@ -1,60 +1,27 @@
+// Imports necessários para a função
 import SockJS from 'sockjs-client';
 import { Client, type IMessage } from '@stomp/stompjs';
 import {useEffect, useState} from "react";
+import {GridGame} from "./Grid.tsx";
+import type {CellState} from "./CellState.ts";
+import {configGame} from "../Configs/Config.ts";
 
+// Variáveis de ambiente
 const playerId = import.meta.env.VITE_ID_PLAYER;
 const gameId = import.meta.env.VITE_ID_GAME;
 const apiUrl = import.meta.env.VITE_API_URL;
 
-type CellState = 'empty' | 'hit' | 'miss' | 'ship'; // estados para uma celula
-
-function CreateGrid({
-        sendPlay,
-        isConnected,
-        cellStates
-    }: {
-    sendPlay: (row: number, col: number) => void;
-    isConnected: boolean;
-    cellStates: CellState[][];
-}) {
-    // Constante que seta o tamanho do tabuleiro
-    const SIZE = 10;
-    const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']; // array com as letras para representar linhas e ajudar na diferenciação.
-
-    return (
-        <div className="grid">
-            <table>
-                <tbody>
-                {Array(SIZE).fill(0).map((_, rowIndex) => (
-                    <tr key={rowIndex}>
-                        {Array(SIZE).fill(0).map((_, colIndex) => {
-                            const state = cellStates[rowIndex][colIndex];
-                            return (
-                                <td
-                                    key={`${colIndex}${rowIndex}`}
-                                    className={`cell-${colIndex}-${letters[rowIndex]}`}
-                                    data-state={state}
-                                    onClick={() => isConnected && sendPlay(rowIndex, colIndex)}
-                                >
-                                    {colIndex}{letters[rowIndex]}
-                                </td>
-                            );
-                        })}
-                    </tr>
-                ))}
-                </tbody>
-            </table>
-        </div>
-    );
-}
 
 export function Board() {
     const SIZE = 10;
     const [stompClient, setStompClient] = useState<Client | null>(null);
     const [isConnected, setIsConnected] = useState(false);
-    const [cellStates, setCellStates] = useState<CellState[][]>(
+    const[myboard, setMyBoard] =useState<CellState[][]>(
         Array(SIZE).fill(null).map(() => Array(SIZE).fill('empty'))
-    )
+    );
+    const[enemyboard, setEnemyBoard] =useState<CellState[][]>(
+        Array(SIZE).fill(null).map(() => Array(SIZE).fill('empty'))
+    );
 
     // Conecta ao STOMP quando o componente é montado
     useEffect(() => {
@@ -80,10 +47,13 @@ export function Board() {
 
                 client.subscribe('/topics/play', (message: IMessage) => {
                     const body = JSON.parse(message.body);
+                    const {coordinate, result, player, target} = body;
                     console.log('📥 Mensagem recebida:', body);
-
-                    const{coordinate, result} = body;
-                    updateCellState(coordinate.row, coordinate.col, result === 'HIT' ? 'hit': 'miss')
+                    if(player === playerId){
+                        updateEnemyBoard(coordinate.row, coordinate.col, result === 'HIT'? 'hit': 'miss');
+                    }else if(player === target){
+                        updateMyBoard(coordinate.row, coordinate.col, result === 'HIT'? 'hit' : 'miss');
+                    }
                     // Aqui você pode processar a mensagem recebida
                 });
                 client.subscribe('/user/queue/errors', (message: IMessage)=>{
@@ -103,8 +73,15 @@ export function Board() {
         client.activate();
         setStompClient(client);
     };
-    const updateCellState = (row: number, col : number, newState: CellState) =>{
-        setCellStates(prev => {
+    const updateEnemyBoard = (row: number, col : number, newState: CellState) =>{
+        setEnemyBoard(prev => {
+            const updated = prev.map(inner => [...inner]);
+            updated[row][col] = newState;
+            return updated;
+        })
+    }
+    const updateMyBoard = (row: number, col : number, newState: CellState) =>{
+        setMyBoard(prev => {
             const updated = prev.map(inner => [...inner]);
             updated[row][col] = newState;
             return updated;
@@ -131,7 +108,7 @@ export function Board() {
         });
 
         console.log('📤 Jogada enviada:', jogada);
-        updateCellState(rowIndex, colIndex, 'ship');
+        updateEnemyBoard(rowIndex, colIndex, 'ship');
     };
 
     return (
@@ -139,7 +116,25 @@ export function Board() {
             <div className="connection-status">
                 Status: {isConnected ? '✅ Conectado' : '❌ Desconectado'}
             </div>
-            <CreateGrid sendPlay={sendPlay} isConnected={isConnected} cellStates={cellStates} />
+            <div itemID={'boards-for-game'}>
+                <GridGame
+                    onClickCell={() => {}}
+                    isConnected={false}
+                    letters={configGame.LETTERS}
+                    board={myboard}
+                    mode='game'
+                    title={'Tabuleiro de defesa'}
+                />
+                <GridGame
+                    onClickCell={sendPlay}
+                    isConnected={isConnected}
+                    letters={configGame.LETTERS}
+                    board={enemyboard}
+                    mode='game'
+                    title={'Tabuleiro de Ataque'}
+                />
+            </div>
+
         </div>
     );
 }

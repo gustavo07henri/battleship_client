@@ -1,0 +1,24 @@
+.grid {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.grid table {
+    border-collapse: collapse;
+    width: 400px; /* Ajuste conforme necessário */
+    height: 400px; /* Ajuste conforme necessário */
+}
+
+.grid td {
+    width: 40px; /* 400px / 10 colunas */
+    height: 40px; /* 400px / 10 linhas */
+    text-align: center;
+    vertical-align: middle;
+    border: 1px solid #ccc;
+    background-color: #f0f0f0; /* Opcional: para visualização */
+}
+
+.grid td:hover {
+    background-color: #e0e0e0; /* Opcional: para feedback visual */
+}

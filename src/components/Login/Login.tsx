@@ -1,5 +1,4 @@
 import {useState} from "react";
-import './Login.module.css'
 // Rota Base da API, Localizada no arquivo .env
 const apiUrl = import.meta.env.VITE_API_URL;
 

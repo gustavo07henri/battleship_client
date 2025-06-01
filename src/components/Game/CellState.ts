@@ -1,0 +1,1 @@
+export type CellState = 'empty' | 'hit' | 'miss' | 'ship'; // estados para uma celula
