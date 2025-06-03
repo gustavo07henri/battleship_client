@@ -3,6 +3,7 @@ import {configGame} from "../Configs/Config.ts";
 import {canPlaceShip, createShipsPayload, updateMyBoardWithShip} from "../Utils/BoardUtils.ts";
 import type {Ship, CellState} from "../Types/Types.ts";
 import {GridGame} from "./Grid.tsx";
+import { useNavigate } from 'react-router-dom';
 
 // Interface para a resposta da API
 interface ApiResponse {
@@ -23,7 +24,7 @@ function Shipyard({
     return (
         <div className="shipyard">
             <h3>Navios disponíveis:</h3>
-            {ships.map(ship => (
+            {ships.filter(ship => !ship.position).map(ship => (
                 <div
                     key={ship.id}
                     draggable
@@ -31,8 +32,11 @@ function Shipyard({
                     onDoubleClick={() => onRotate(ship.id)}
                     className={`ship ship-${ship.size} ${ship.orientation}`}
                     title={`Navio: ${ship.id} (${ship.size} células)`}
+                    style={{
+                        '--size': ship.size
+                    } as React.CSSProperties}
                 >
-                    {ship.id.toUpperCase()} ({ship.size})
+                    
                 </div>
             ))}
             <p>* Clique duas vezes para rotacionar o navio</p>
@@ -40,45 +44,12 @@ function Shipyard({
     );
 }
 
-// function GameBoard({
-//                        board,
-//                        letters,
-//                        onDrop,
-//                        onDragOver,
-//                    }: {
-//     board: CellState[][];
-//     letters: string[];
-//     onDrop: (e: React.DragEvent, row: number, col: number) => void;
-//     onDragOver: (e: React.DragEvent, row: number, col: number) => void;
-// }) {
-//     return (
-//         <div className="grid">
-//             <table>
-//                 <tbody>
-//                 {board.map((row, rowIndex) => (
-//                     <tr key={rowIndex}>
-//                         {row.map((cell, colIndex) => (
-//                             <td
-//                                 key={`${colIndex}${letters[rowIndex]}`}
-//                                 className={`cell cell-${colIndex}-${letters[rowIndex]} cell-${cell}`}
-//                                 data-state={cell}
-//                                 onDragOver={e => onDragOver(e, rowIndex, colIndex)}
-//                                 onDrop={e => onDrop(e, rowIndex, colIndex)}
-//                             >
-//                                 {letters[rowIndex]}{colIndex}
-//                             </td>
-//                         ))}
-//                     </tr>
-//                 ))}
-//                 </tbody>
-//             </table>
-//         </div>
-//     );
-// }
-
 // Componente principal
 export function ShipPlacementBoard() {
     // Estado do tabuleiro (10x10, inicialmente vazio)
+    const navigate = useNavigate();
+    const gameId = localStorage.getItem('gameId')
+    const playerId = localStorage.getItem('playerId')
     const [myBoard, setMyBoard] = useState<CellState[][]>(
         Array(configGame.SIZE)
             .fill(Array)
@@ -128,6 +99,10 @@ export function ShipPlacementBoard() {
             const shipId = e.dataTransfer.getData('shipId');
             const ship = ships.find(s => s.id === shipId);
             if (!ship) return;
+            if (ship.position) {
+                alert('Este navio já foi posicionado!');
+                return;
+            }
 
             if (canPlaceShip(ship, row, col, ship.orientation, myBoard)) {
                 setShips(prev =>
@@ -162,8 +137,9 @@ export function ShipPlacementBoard() {
 
         setIsLoading(true);
         try {
-            const payload = createShipsPayload(ships, configGame.gameId, configGame.playerId);
-            const response = await fetch(`${configGame.apiUrl}/create-board`, {
+            const payload = createShipsPayload(ships, gameId , playerId);
+            console.log(payload)
+            const response = await fetch(`${configGame.apiUrl}/game/init/create-board`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
@@ -171,10 +147,11 @@ export function ShipPlacementBoard() {
 
             const data: ApiResponse = await response.json();
             if (!response.ok) {
-                throw new Error(data.message || '❌ Falha ao enviar Board');
+               console.log(data.message || '❌ Falha ao enviar Board');
             }
-
+            
             console.log('✅ Criação bem sucedida:', data);
+            navigate('/game')
             alert('✅ Frota enviada com sucesso!');
         } catch (err) {
             console.error('Erro ao enviar frota:', err);
@@ -214,7 +191,7 @@ export function ShipPlacementBoard() {
 
             {/* Botões de ação */}
             <div className="controls">
-                <button onClick={sendFleetToBackend} disabled={isLoading}>
+                <button onClick={sendFleetToBackend} disabled={isLoading || ships.some(ship => !ship.position)}>
                     {isLoading ? 'Enviando...' : '🚀 Confirmar Posicionamento'}
                 </button>
                 <button onClick={resetBoard} disabled={isLoading}>

@@ -1,8 +1,10 @@
 import {useState} from "react";
+import { useNavigate } from 'react-router-dom';
 // Rota Base da API, Localizada no arquivo .env
 const apiUrl = import.meta.env.VITE_API_URL;
 
 export function Signup(){
+    const navigate = useNavigate();
     const [email, setEmail] = useState('')
     const [name, setName] = useState('')
     const [erro, setErro] = useState('')
@@ -25,6 +27,8 @@ export function Signup(){
 
             const data = await response.json();
             console.log('Cadastro realizado: ', data);
+            alert('✅ Cadastro realizado com sucesso!')
+            navigate('/');
         }catch (err){
             setErro('Erro ao realizar cadastro');
             console.error(err);

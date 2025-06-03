@@ -1,4 +1,4 @@
-export type CellState = 'empty' | 'ship' | 'hit' | 'miss';
+export type CellState = 'empty' | 'hit' | 'miss' | 'ship';
 export type Orientation = 'horizontal' | 'vertical';
 export interface Coordinate {
     row : number;

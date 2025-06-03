@@ -1,14 +1,14 @@
 import {useState} from "react";
+import { useNavigate } from 'react-router-dom';
 // Rota Base da API, Localizada no arquivo .env
 const apiUrl = import.meta.env.VITE_API_URL;
 
 export function Login(){
+    const navigate = useNavigate();
     const [email, setEmail] = useState('');
     const [name, setName] = useState('');
     const [erro, setErro] = useState('');
-    console.log(apiUrl, 'Chegou aqui');
-
-    const urlLogin = `${apiUrl}/game/players/signup`;
+    const urlLogin = `${apiUrl}/game/players/login`;
     const handleSubmit = async (e: { preventDefault: () => void; }) => {
         e.preventDefault();
         setErro('');
@@ -25,7 +25,19 @@ export function Login(){
             }
 
             const data = await response.json();
-            console.log('Login realizado: ', data);
+            
+            if (!data.playerId || typeof data.playerId !== 'string') {
+                throw new Error('ID do jogador inválido');
+            }
+
+            try {
+                localStorage.setItem('playerId', data.playerId);
+                navigate('/search-game');
+                console.log('login bem sucedido')
+            } catch (storageError) {
+                console.error('Erro ao salvar playerId:', storageError);
+                setErro('Erro ao salvar dados do jogador');
+            }
         }catch (err){
             setErro('Erro ao realizar login');
             console.error(err);
@@ -34,10 +46,10 @@ export function Login(){
     return (
         <div>
             <form
-                className={'form_data'}
+                className='form-data'
                 onSubmit={handleSubmit}
             >
-                <label>E-mail</label>
+                <label>{'Email'}</label>
                 <input
                     value={email}
                     type="email"
@@ -59,6 +71,15 @@ export function Login(){
                     type="submit"
                 >Login</button>
             </form>
+            <div>
+                <button
+                    className="default_button"
+                    type="button"
+                    onClick={() => navigate('/signup')}
+                >
+                    Criar Conta
+                </button>
+            </div>
         </div>
     );
 }

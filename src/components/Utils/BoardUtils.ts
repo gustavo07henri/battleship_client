@@ -38,8 +38,8 @@ export function updateMyBoardWithShip(
 
 export function createShipsPayload(
     ships: Ship[],
-    gameId: string,
-    playerId: string
+    gameId: string | null,
+    playerId: string | null
 ): ShipsPayload{
     if(!gameId || !playerId){
         throw new Error('ID do jogo ou jogador não identificado.')

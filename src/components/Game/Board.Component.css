@@ -1,24 +1,127 @@
+[itemID='boards-for-game'] {
+    display: inline-flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    gap: 40px;
+    margin: 30px 0;
+}
+.grid h2 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+}
 .grid {
     display: flex;
     flex-direction: column;
     align-items: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    border-radius: 24px;
+    background-color: #fffdfd;
 }
 
 .grid table {
     border-collapse: collapse;
-    width: 400px; /* Ajuste conforme necessário */
-    height: 400px; /* Ajuste conforme necessário */
+    width: 600px; /* Ajuste conforme necessário */
+    height: 600px; /* Ajuste conforme necessário */
+    margin: 0 auto;
 }
 
 .grid td {
     width: 40px; /* 400px / 10 colunas */
     height: 40px; /* 400px / 10 linhas */
     text-align: center;
+    border: 2px solid #000000;
     vertical-align: middle;
-    border: 1px solid #ccc;
     background-color: #f0f0f0; /* Opcional: para visualização */
+    cursor: pointer;
+    transition: all 0.3s;
+    color: transparent;
 }
 
 .grid td:hover {
     background-color: #e0e0e0; /* Opcional: para feedback visual */
+    transform: scale(1.05);
 }
+
+td[data-state='empty'] {
+  background-color: #a8e6f0;
+}
+
+td[data-state='empty']:hover {
+  background-color: #81d8e3;
+}
+
+td[data-state='miss'] {
+  background-color: #7f8c8d;
+  color: white;
+}
+
+td[data-state='miss']::after {
+  content: '•';
+  color: white;
+  font-size: 1.2rem;
+}
+
+td[data-state='hit'] {
+  background-color: #e74c3c;
+  color: white;
+}
+
+td[data-state='hit']::after {
+  content: '✖';
+  color: white;
+  font-size: 1.2rem;
+}
+
+td[data-state='ship'] {
+  background-color: #3498db;
+}
+/* Navios */
+.ship {
+    display: inline-block;
+    background: #3498db;
+    color: #fff;
+    border-radius: 6px;
+    margin: 8px 0;
+    text-align: center;
+    cursor: grab;
+    font-weight: bold;
+    transition: transform 0.3s, width 0.3s, height 0.3s;
+    /* Tamanho base para navio horizontal */
+    width: calc(40px * var(--size, 1));
+    height: 40px;
+    line-height: 40px;
+}
+
+.ship.vertical {
+    /* Rotaciona e ajusta o tamanho para vertical */
+    transform: rotate(90deg);
+    width: 40px;
+    height: calc(40px * var(--size, 1));
+    line-height: 40px;
+}
+
+.shipyard {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ship.horizontal {
+  display: flex;
+  flex-direction: row;
+}
+
+.ship.vertical {
+  display: flex;
+  flex-direction: column;
+}
+
+.valid-drop {
+  background-color: #c8e6c9 !important;
+}
+
+/* .invalid-drop {
+  background-color: #ffcdd2 !important;
+} */
