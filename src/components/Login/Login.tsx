@@ -1,5 +1,6 @@
 import {useState} from "react";
 import { useNavigate } from 'react-router-dom';
+import { setPlayerId } from "../Utils/LocalStorage.tsx";
 // Rota Base da API, Localizada no arquivo .env
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -31,7 +32,7 @@ export function Login(){
             }
 
             try {
-                localStorage.setItem('playerId', data.playerId);
+                setPlayerId(data.playerId)
                 navigate('/search-game');
                 console.log('login bem sucedido')
             } catch (storageError) {
@@ -44,37 +45,39 @@ export function Login(){
         }
     }
     return (
-        <div>
-            <form
-                className='form-data'
-                onSubmit={handleSubmit}
-            >
-                <label>{'Email'}</label>
-                <input
-                    value={email}
-                    type="email"
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="Email"
-                />
-                <label>Nome</label>
-                <input
-                    value={name}
-                    type="name"
-                    onChange={(e) => setName(e.target.value)}
-                    className="Nome"
-                />
-                {erro && (
-                    <p className="error">{erro}</p>
-                )}
+        <div className="container">
+            <div className="form-wrapper">
+                <form className="form-data" onSubmit={handleSubmit}>
+                    <h2>Login</h2>
+
+                    <label htmlFor="email">Email</label>
+                    <input
+                        id="email"
+                        value={email}
+                        type="email"
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="input"
+                        required
+                    />
+
+                    <label htmlFor="name">Nome</label>
+                    <input
+                        id="name"
+                        value={name}
+                        type="text"
+                        onChange={(e) => setName(e.target.value)}
+                        className="input"
+                        required
+                    />
+
+                    {erro && <p className="error">{erro}</p>}
+
+                    <button type="submit" className="button">Login</button>
+                </form>
+
                 <button
-                    className={'default_button'}
-                    type="submit"
-                >Login</button>
-            </form>
-            <div>
-                <button
-                    className="default_button"
                     type="button"
+                    className="button secondary"
                     onClick={() => navigate('/signup')}
                 >
                     Criar Conta

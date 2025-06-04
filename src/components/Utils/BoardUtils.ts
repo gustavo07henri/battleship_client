@@ -7,14 +7,14 @@ export function canPlaceShip(
     row: number,
     col: number,
     orientation: Orientation,
-    boar: CellState [][]
+    board: CellState [][]
 ): boolean{
     for(let i = 0; i < ship.size; i++){
         const r = orientation === 'horizontal' ? row : row +i;
         const c = orientation === 'horizontal' ? col + i : col;
 
         if(r >= configGame.SIZE || c >= configGame.SIZE)return false;
-        if(boar[r][c] === 'ship') return false;
+        if(board[r][c] === 'ship') return false;
     }
     return true;
 }
@@ -45,8 +45,7 @@ export function createShipsPayload(
         throw new Error('ID do jogo ou jogador não identificado.')
     }
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
+
     const shipDtos: ShipDto[] = ships.map(ship =>{
        if(!ship.position){
            throw new Error(`Navio ${ship.id} não possui posição definida.`);
@@ -63,4 +62,34 @@ export function createShipsPayload(
     });
 
     return { shipDtos, gameId, playerId}
+}
+
+export function getCellsForShip(row: number, col: number, ship: Ship){
+    const cells = [];
+    for (let i = 0; i < ship.size; i++){
+        const r = ship.orientation === 'horizontal' ? row : row + i;
+        const c = ship.orientation === 'horizontal' ? col + i : col;
+        if( r >= 0 && r < configGame.SIZE && c >= 0 && c < configGame.SIZE){
+            cells.push(`${r}-${c}`)
+        }
+
+    }
+    return cells;
+}
+
+export function convertShipDtosToBoardState(shipDtos: ShipDto[]): CellState[][] {
+    const board = Array(configGame.SIZE)
+        .fill(null)
+        .map(() => Array(configGame.SIZE).fill('empty'));
+
+    shipDtos.forEach(shipDto => {
+        shipDto.coordinates.forEach((coord: Coordinate) => {
+            if (coord.row >= 0 && coord.row < configGame.SIZE && 
+                coord.col >= 0 && coord.col < configGame.SIZE) {
+                board[coord.row][coord.col] = 'ship';
+            }
+        });
+    });
+
+    return board;
 }

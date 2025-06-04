@@ -11,7 +11,7 @@ export interface Ship {
     orientation: Orientation;
 }
 export interface ShipDto{
-    coodinates: Coordinate[];
+    coordinates: Coordinate[];
 }
 
 export interface ShipsPayload{

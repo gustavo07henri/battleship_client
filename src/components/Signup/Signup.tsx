@@ -35,33 +35,37 @@ export function Signup(){
         }
     }
     return (
-        <div>
-            <form
-                className={'form_data'}
-                onSubmit={handleSubmit}
-            >
-                <label>E-mail</label>
-                <input
-                    value={email}
-                    type="email"
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="Email"
-                />
-                <label>Nome</label>
-                <input
-                    value={name}
-                    type="name"
-                    onChange={(e) => setName(e.target.value)}
-                    className="Nome"
-                />
-                {erro && (
-                    <p className="error">{erro}</p>
-                )}
-                <button
-                    className={'default_button'}
-                    type="submit"
-                >Cadastro</button>
-            </form>
+        <div className="container">
+            <div className="form-wrapper">
+                <form
+                    className={'form_data'}
+                    onSubmit={handleSubmit}
+                >
+                    <label htmlFor="email">Email</label>
+                    <input
+                        id="email"
+                        value={email}
+                        type="email"
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="input"
+                        required
+                    />
+                    <label htmlFor="name">Nome</label>
+                    <input
+                        id="name"
+                        value={name}
+                        type="text"
+                        onChange={(e) => setName(e.target.value)}
+                        className="input"
+                        required
+                    />
+                    {erro && <p className="error">{erro}</p>}
+                    <button
+                        className="button"
+                        type="submit"
+                    >Cadastro</button>
+                </form>
+            </div>
         </div>
     );
 }

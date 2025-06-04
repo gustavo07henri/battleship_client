@@ -4,6 +4,8 @@ import {canPlaceShip, createShipsPayload, updateMyBoardWithShip} from "../Utils/
 import type {Ship, CellState} from "../Types/Types.ts";
 import {GridGame} from "./Grid.tsx";
 import { useNavigate } from 'react-router-dom';
+import {LogoutButton} from "../LogoutButton/LogoutButton.tsx";
+import {getGameId, getPlayerId, setBordShipPositions} from "../Utils/LocalStorage.tsx";
 
 // Interface para a resposta da API
 interface ApiResponse {
@@ -36,7 +38,9 @@ function Shipyard({
                         '--size': ship.size
                     } as React.CSSProperties}
                 >
-                    
+                    {Array.from({ length: ship.size }).map((_, idx) => (
+                        <div key={idx} />
+                    ))}
                 </div>
             ))}
             <p>* Clique duas vezes para rotacionar o navio</p>
@@ -48,8 +52,8 @@ function Shipyard({
 export function ShipPlacementBoard() {
     // Estado do tabuleiro (10x10, inicialmente vazio)
     const navigate = useNavigate();
-    const gameId = localStorage.getItem('gameId')
-    const playerId = localStorage.getItem('playerId')
+    const gameId = getGameId()
+    const playerId = getPlayerId()
     const [myBoard, setMyBoard] = useState<CellState[][]>(
         Array(configGame.SIZE)
             .fill(Array)
@@ -82,6 +86,7 @@ export function ShipPlacementBoard() {
             e.preventDefault();
             const shipId = e.dataTransfer.getData('shipId');
             const ship = ships.find(s => s.id === shipId);
+
             if (ship && canPlaceShip(ship, row, col, ship.orientation, myBoard)) {
                 e.currentTarget.classList.add('valid-drop');
             } else {
@@ -105,13 +110,21 @@ export function ShipPlacementBoard() {
             }
 
             if (canPlaceShip(ship, row, col, ship.orientation, myBoard)) {
+                const updatedShip = {
+                    ...ship,
+                    position: { row, col },
+                    orientation: ship.orientation
+                };
+            
                 setShips(prev =>
-                    prev.map(s => (s.id === shipId ? { ...s, position: { row, col } } : s))
+                    prev.map(s => (s.id === shipId ? updatedShip : s))
                 );
-                updateMyBoardWithShip(ship, row, col, setMyBoard);
+            
+                updateMyBoardWithShip(updatedShip, row, col, setMyBoard);
             } else {
                 alert('❌ Posição inválida para este navio!');
             }
+            
         },
         [ships, myBoard]
     );
@@ -129,16 +142,23 @@ export function ShipPlacementBoard() {
 
     // Envia a frota para o backend
     const sendFleetToBackend = useCallback(async () => {
+        console.log('Ships before send:', ships);
+
         // Verifica se todos os navios foram posicionados
         if (ships.some(ship => !ship.position)) {
             alert('🚫 Você precisa posicionar todos os navios antes de enviar.');
+            console.log(ships)
             return;
         }
 
         setIsLoading(true);
         try {
-            const payload = createShipsPayload(ships, gameId , playerId);
-            console.log(payload)
+            const payload = createShipsPayload(ships, gameId ?? null, playerId ?? null);
+            
+            setBordShipPositions(payload.shipDtos);
+
+            console.log(`✅✅✅✅✅✅✅\n${payload.shipDtos}\n✅✅✅✅✅✅✅✅`)
+
             const response = await fetch(`${configGame.apiUrl}/game/init/create-board`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -159,7 +179,7 @@ export function ShipPlacementBoard() {
         } finally {
             setIsLoading(false);
         }
-    }, [ships]);
+    }, [ships, gameId, playerId, navigate]);
 
     // Reseta o tabuleiro e as posições dos navios
     const resetBoard = useCallback(() => {
@@ -175,6 +195,7 @@ export function ShipPlacementBoard() {
 
     return (
         <div className="game-container">
+            <LogoutButton/>
             <h2>Posicione seus navios</h2>
 
             {/* Componente para exibir os navios disponíveis */}
@@ -191,10 +212,10 @@ export function ShipPlacementBoard() {
 
             {/* Botões de ação */}
             <div className="controls">
-                <button onClick={sendFleetToBackend} disabled={isLoading || ships.some(ship => !ship.position)}>
+                <button className='button' onClick={sendFleetToBackend} disabled={isLoading || ships.some(ship => !ship.position)}>
                     {isLoading ? 'Enviando...' : '🚀 Confirmar Posicionamento'}
                 </button>
-                <button onClick={resetBoard} disabled={isLoading}>
+                <button className='button' onClick={resetBoard} disabled={isLoading}>
                     🔄 Reiniciar Tabuleiro
                 </button>
             </div>

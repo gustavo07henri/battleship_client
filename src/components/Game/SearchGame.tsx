@@ -3,10 +3,11 @@ import { configGame } from "../Configs/Config";
 import { useNavigate } from "react-router-dom";
 import {useWebSocket} from "../Context/WebSocketContext.tsx";
 import type {IMessage} from "@stomp/stompjs";
+import { getPlayerId, setGameId } from "../Utils/LocalStorage.tsx";
 
 export function SearchGame() {
 
-    const playerId = localStorage.getItem('playerId') || '';
+    const playerId = getPlayerId();
     const navigate = useNavigate();
     
     const [isLoading, setIsLoading] = useState(false);
@@ -23,7 +24,9 @@ export function SearchGame() {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ playerId }),
+        
             });
+            
             if (response.ok) {
                 setIsLoading(true);
             }
@@ -37,11 +40,10 @@ export function SearchGame() {
     };
     useEffect(() => {
         if(!isConnected || !stompClient) return;
-        console.log('chegou aqui');
         const gameStarted = stompClient.subscribe(`/topics/game-started/${playerId}`, async (message: IMessage) => {
 
             const body = JSON.parse(message.body);
-            localStorage.setItem('gameId', body.gameId);
+            setGameId(body.gameId);
             
             const response = 'Iniciando jogo...';
             setSuccess(response);
