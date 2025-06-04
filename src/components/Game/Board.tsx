@@ -8,15 +8,17 @@ import { useWebSocket } from '../Context/WebSocketContext.tsx';
 import { LogoutButton} from "../LogoutButton/LogoutButton.tsx";
 import { getBordShipPositions, getGameId, getPlayerId } from '../Utils/LocalStorage.tsx';
 import { convertShipDtosToBoardState } from '../Utils/BoardUtils.ts';
+import 'bulma/css/bulma.min.css'
 
 // Variáveis de ambiente
-const playerId2 = getPlayerId();
-const gameId = getGameId();
+const idPlayer = getPlayerId();
+const idGame = getGameId();
 
 
 export function Board() {
     const SIZE = 10;
     const { stompClient, isConnected } = useWebSocket() ?? {};
+    const [isPlayerTurn, setIsPlayerTurn] = useState(false);
 
     const [myboard, setMyBoard] = useState<CellState[][]>(
         Array(SIZE).fill(null).map(() => Array(SIZE).fill('empty'))
@@ -54,15 +56,19 @@ export function Board() {
             console.error('STOMP não conectado!');
             return;
         }
-        if(!gameId || !playerId2){
+        if(!idGame || !idPlayer){
             throw Error('Player ID ou Game ID, nulos!!')
+        }
+        if (!isPlayerTurn) {
+            alert('❌ Não é sua vez de jogar!');
+            return;
         }
 
         const jogada = {
-            gameId : gameId,
+            gameId : idGame,
             coordinate: { row: rowIndex, col: colIndex },
             moment: new Date().toISOString(),
-            player: playerId2
+            player: idPlayer
         };
 
         stompClient.publish({
@@ -84,37 +90,53 @@ export function Board() {
             console.log('📥 Mensagem recebida:', body);
             const newState = result === 'HIT' ? 'hit' : 'miss'
             
-            if(playerId2 === playerId){
+            if(idPlayer === playerId){
                 updateEnemyBoard(coordinate.row, coordinate.col, newState);
                 console.log('❌ Atualização enemyBoard:');
             }
-            if(playerId2 === target){
+            if(idPlayer === target){
                 updateMyBoard(coordinate.row, coordinate.col, newState);
                 console.log('❌ Atualização myBoard:');
             }
-            // Aqui você pode processar a mensagem recebida
-                
+
+        });
+        const notificationSubscription = stompClient.subscribe(`/topics/game-notify/${idPlayer}`, (message: IMessage) =>{
+            const body = JSON.parse(message.body);
+            const {msg} = body;
+            if(msg === "WINNER"){
+                alert('🎉 Parabéns! Você venceu!');
+            }
+            if(msg === "LOSER"){
+                alert('😢 Você perdeu! Melhor sorte na próxima!');
+            }
+            if(msg === "YOUR_TURN"){
+                setIsPlayerTurn(true);
+            }
+            if(msg === "NOT_YOUR_TURN"){
+                setIsPlayerTurn(false);
+            }
         });
         const errorSubscription = stompClient.subscribe('/user/queue/errors', (message: IMessage) => {
             const body = JSON.parse(message.body);
-            const { err, msg, errorCode } = body;
-            console.log('❌ Error na requisição:', body);
-            alert(`❌ ${msg}`);
+            console.log('❌ Error na requisição:', body.msg);
+            alert(`❌ ${body.msg}`);
             // Tratamento para erros recebidos
         });
 
         return () => {
             playSubscription.unsubscribe();
             errorSubscription.unsubscribe();
+            notificationSubscription.unsubscribe();
         };
     }, [stompClient, isConnected]);
 
     return (
-        <div className="game-container">
-            <LogoutButton/>
+        <div itemID='Game'>
+
             <div className="connection-status">
+                <LogoutButton/>
                 Status: {isConnected ? '✅ Conectado' : '❌ Desconectado'}
-                <div itemID={'boards-for-game'}>
+                <div itemID='boards-for-game'>
                     <GridGame
                         onClickCell={() => {}}
                         isConnected={false}
@@ -131,6 +153,11 @@ export function Board() {
                         mode='game'
                         title={'Tabuleiro de Ataque'}
                     />
+                </div>
+                <div className="turn-status">
+                    {isPlayerTurn ?
+                        '✅ É sua vez de jogar! Clique em uma célula do tabuleiro de ataque.' :
+                        '⏳ Aguarde sua vez...'}
                 </div>
             </div>
         </div>

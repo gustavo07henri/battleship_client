@@ -19,31 +19,49 @@
 
 /* Estilizações do tabuleirio*/
 /* Estilos gerais */
-.game-container {
-  font-family: 'Arial', sans-serif;
+div[itemID='boards-for-game'], div[itemID='posicionamento']{
+  width: fit-content;
   display: flex;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-  text-align: center;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background-color: #fefefe;
+  /*border: 1px solid #ddd;*/
+  border-radius: 8px;
+}
+div[itemID='Game'] {
+  width: fit-content;
+  /*display: flex;*/
+  align-items: center;
+  gap: 2rem;
+  margin: 2rem auto;
+  padding: 1.5rem;
 }
 
-.connection-status {
+div[itemID='Init']{
+  width: fit-content;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin: 2rem auto;
+  padding: 1.5rem;
+  align-items: center;
+  /*background: #1a1a1a;*/
+  /*border-radius: 8px;*/
+}
+
+.connection-status{
+  display: flex;
+  flex-direction: column;
   font-size: 1.2rem;
   font-weight: bold;
+  align-items: center;
   color: #1a1a1a;
-  margin-bottom: 30px;
+  margin: 0 auto 30px;
   padding: 10px;
   border-radius: 5px;
-  background-color: #f0f0f0;
-}
-/* Responsividade */
-@media (max-width: 768px) {
-  [itemID='boards-for-game'] {
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-  }
 }
 
 .controls {
@@ -51,19 +69,10 @@
   gap: 10px;
 }
 
-button {
-  padding: 10px 20px;
-  font-size: 16px;
-  cursor: pointer;
-}
-
 button:disabled {
   cursor: not-allowed;
   opacity: 0.6;
 }
-
-/* Estilizações dos forms */
-
 
 * {
   box-sizing: border-box;
@@ -76,93 +85,6 @@ html, body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background-color: #f4f4f4;
 }
-
-/* Centraliza toda a página */
-.container {
-  display: flex;
-  width: 100%;
-  height: 100%;
-  justify-content: center;
-  align-items: center;
-  margin-top: 240px;
-}
-
-/* Contém formulário + botão Criar Conta */
-.form-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-/* Formulário visual */
-.form-data {
-  background: white;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 400px;
-  margin-bottom: 10px;
-}
-
-.form-data h2 {
-  text-align: center;
-  margin-bottom: 20px;
-  color: #333;
-}
-
-label {
-  display: block;
-  margin-bottom: 6px;
-  font-weight: 600;
-  color: #555;
-}
-
-.input {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 20px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  transition: border-color 0.2s;
-}
-
-.input:focus {
-  border-color: #007bff;
-  outline: none;
-}
-
-.button {
-  width: 100%;
-  padding: 12px;
-  border: none;
-  border-radius: 6px;
-  background-color: #007bff;
-  color: white;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.button:hover {
-  background-color: #0056b3;
-}
-
-.button.secondary {
-  background-color: #6c757d;
-}
-
-.button.secondary:hover {
-  background-color: #495057;
-}
-
-.error {
-  color: red;
-  font-size: 14px;
-  margin-top: -10px;
-  margin-bottom: 15px;
-}
-
 @media (max-width: 480px) {
   .form-data {
     padding: 20px;
@@ -173,3 +95,6 @@ label {
     padding: 10px;
   }
 }
+
+
+

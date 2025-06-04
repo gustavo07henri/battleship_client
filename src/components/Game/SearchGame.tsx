@@ -1,14 +1,15 @@
 import {useEffect, useState} from "react";
 import { configGame } from "../Configs/Config";
-import { useNavigate } from "react-router-dom";
+//import { useNavigate } from "react-router-dom";
 import {useWebSocket} from "../Context/WebSocketContext.tsx";
 import type {IMessage} from "@stomp/stompjs";
 import { getPlayerId, setGameId } from "../Utils/LocalStorage.tsx";
+import 'bulma/css/bulma.min.css';
 
-export function SearchGame() {
+export function SearchGame({ onGameFound }: { onGameFound: () => void }) {
 
     const playerId = getPlayerId();
-    const navigate = useNavigate();
+    //const navigate = useNavigate();
     
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
@@ -47,7 +48,8 @@ export function SearchGame() {
             
             const response = 'Iniciando jogo...';
             setSuccess(response);
-            navigate('/init');
+            //navigate('/init');
+            onGameFound()
             console.log(`✅ mensagem recebida: ${body}`)
         });
         const errorSubscription = stompClient.subscribe('/user/queue/errors', (message: IMessage) => {
@@ -60,16 +62,25 @@ export function SearchGame() {
             gameStarted.unsubscribe();
             errorSubscription.unsubscribe();
         };
-    }, []);
+    }, [onGameFound]);
 
 
     return (
-        <div className="search-game-container">
-            <h1>Search Game</h1>
-            <button onClick={handleSearch} disabled={isLoading}>Search</button>
-            {error && <p className="error-message">{error}</p>}
-            {isLoading && <p className="loading-message">Buscando jogo...</p>}
-            {success && <p className="success-message">{success}</p>}
+        <div className="container mt-5">
+            <h1 className="title is-3">Procurar Partida</h1>
+            <button
+                className="button is-link is-medium"
+                title="Disabled button"
+                onClick={handleSearch}
+                disabled={isLoading}
+            >
+                Search
+            </button>
+
+            {error && <p className="notification is-danger mt-3">{error}</p>}
+            {isLoading && <p className="notification is-info mt-3">Buscando jogo...</p>}
+            {success && <p className="notification is-success mt-3">{success}</p>}
         </div>
     );
+
 }

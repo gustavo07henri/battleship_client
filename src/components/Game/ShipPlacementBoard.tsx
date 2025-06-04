@@ -6,6 +6,8 @@ import {GridGame} from "./Grid.tsx";
 import { useNavigate } from 'react-router-dom';
 import {LogoutButton} from "../LogoutButton/LogoutButton.tsx";
 import {getGameId, getPlayerId, setBordShipPositions} from "../Utils/LocalStorage.tsx";
+import 'bulma/css/bulma.min.css';
+import {SearchGame} from "./SearchGame.tsx";
 
 // Interface para a resposta da API
 interface ApiResponse {
@@ -50,7 +52,9 @@ function Shipyard({
 
 // Componente principal
 export function ShipPlacementBoard() {
-    // Estado do tabuleiro (10x10, inicialmente vazio)
+
+    const [searchingGame, setSearchingGame] = useState(true);
+    const [gameFound, setGameFound] = useState(false);
     const navigate = useNavigate();
     const gameId = getGameId()
     const playerId = getPlayerId()
@@ -59,6 +63,12 @@ export function ShipPlacementBoard() {
             .fill(Array)
             .map(() => Array(configGame.SIZE).fill('empty'))
     );
+
+    const handleGameFound = () => {
+        setGameFound(true);
+        setSearchingGame(false);
+    };
+
 
     // Estado da lista de navios
     const [ships, setShips] = useState<Ship[]>([
@@ -157,8 +167,6 @@ export function ShipPlacementBoard() {
             
             setBordShipPositions(payload.shipDtos);
 
-            console.log(`✅✅✅✅✅✅✅\n${payload.shipDtos}\n✅✅✅✅✅✅✅✅`)
-
             const response = await fetch(`${configGame.apiUrl}/game/init/create-board`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -194,28 +202,70 @@ export function ShipPlacementBoard() {
     }, []);
 
     return (
-        <div className="game-container">
-            <LogoutButton/>
-            <h2>Posicione seus navios</h2>
+        <div itemID="Init">
+            <LogoutButton />
 
-            {/* Componente para exibir os navios disponíveis */}
-            <Shipyard ships={ships} onDragStart={handleDragStart} onRotate={rotateShip} />
+            {searchingGame && (
+                <div
+                    style={{
+                        position: "fixed",
+                        top: 0, left: 0, right: 0, bottom: 0,
+                        backgroundColor: "rgba(0,0,0,0.5)",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        zIndex: 9999,
+                    }}
+                >
+                    <div style={{background: "white", padding: 20, borderRadius: 8}}>
+                        <SearchGame onGameFound={handleGameFound} />
+                    </div>
 
-            {/* Componente para exibir o tabuleiro */}
-            <GridGame
-                board={myBoard}
-                letters={letters}
-                mode='placement'
-                onDrop={handleDrop}
-                onDragOver={handleDragOver}
-            />
+                </div>
+            )}
+            {gameFound && <p>Jogo encontrado! Carregando...</p>}
+            <div className="box">
+                <div itemID="posicionamento">
+                    <div>
+                        <div className="is-flex is-justify-content-space-between is-align-items-center mb-4">
+                            <h2 className="title is-4">Posicione seus navios</h2>
 
-            {/* Botões de ação */}
-            <div className="controls">
-                <button className='button' onClick={sendFleetToBackend} disabled={isLoading || ships.some(ship => !ship.position)}>
+                        </div>
+
+                        <div className="mb-5">
+                            <Shipyard
+                                ships={ships}
+                                onDragStart={handleDragStart}
+                                onRotate={rotateShip}
+                            />
+                        </div>
+                    </div>
+                    <div className="mb-5">
+                        <GridGame
+                            board={myBoard}
+                            letters={letters}
+                            mode="placement"
+                            onDrop={handleDrop}
+                            onDragOver={handleDragOver}
+                        />
+                    </div>
+                </div>
+
+            </div>
+            <div className="buttons">
+                <button
+                    className="button is-link"
+                    onClick={sendFleetToBackend}
+                    disabled={isLoading || ships.some((ship) => !ship.position)}
+                >
                     {isLoading ? 'Enviando...' : '🚀 Confirmar Posicionamento'}
                 </button>
-                <button className='button' onClick={resetBoard} disabled={isLoading}>
+
+                <button
+                    className="button is-warning"
+                    onClick={resetBoard}
+                    disabled={isLoading}
+                >
                     🔄 Reiniciar Tabuleiro
                 </button>
             </div>
