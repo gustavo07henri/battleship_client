@@ -51,6 +51,20 @@ div[itemID='Init']{
   /*background: #1a1a1a;*/
   /*border-radius: 8px;*/
 }
+div[itemID='confirm-buttons'], div[itemId='search-container'],  div[itemID='teste']{
+  width: fit-content;
+  display: flex;
+  flex-direction:column;
+  align-items: center;
+  margin: 2rem;
+  padding: 1.5rem;
+}
+div[itemID='style-buttons']{
+  gap: 2rem;
+  display: flex;
+  align-items: center;
+}
+
 
 .connection-status{
   display: flex;
