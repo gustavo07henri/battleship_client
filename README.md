@@ -1,54 +1,63 @@
-# React + TypeScript + Vite
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+# BattleShip Client
 
-Currently, two official plugins are available:
+Front-end do projeto **BattleShip**, um jogo de Batalha Naval multiplayer, desenvolvido como parte de um estudo de aplicações distribuídas, com foco em comunicação em tempo real e integração de múltiplos protocolos de rede.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🛠 Tecnologias Utilizadas
 
-## Expanding the ESLint configuration
+- **React.js** — biblioteca principal para construção da interface
+- **Bulma CSS** — framework leve de estilização
+- **REST API (HTTP)** — integração com serviços de backend
+- **WebSocket (STOMP)** — comunicação em tempo real para eventos in-game e notificações
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 🎯 Funcionalidades
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+- Comunicação em tempo real entre os jogadores.
+- Notificações instantâneas de ações durante a partida via WebSocket.
+- Integração direta com o backend REST para manipulação de estados do jogo.
+
+## 🚀 Instalação e Execução
+
+Para rodar o projeto localmente:
+
+```bash
+# Clone o repositório
+git clone https://github.com/gustavo07henri/battleship_client.git
+
+# Acesse o diretório
+cd battleship_client
+
+# Instale as dependências
+npm install
+
+# Execute o servidor de desenvolvimento
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Após a execução, o sistema estará disponível geralmente em `http://localhost:5173` (ou conforme indicado no terminal).
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 🔗 Backend Necessário
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+Este cliente depende do backend principal para o funcionamento completo do jogo. O repositório do backend está disponível em:
+
+[BattleShip Main Server - GitHub](https://github.com/gustavo07henri/BattleShip_Main_Server)
+
+## 📦 Pré-requisitos
+
+- Node.js (recomenda-se a versão 18 ou superior)
+- npm
+
+## 💼 Sobre o Projeto
+
+O **BattleShip Client** foi desenvolvido como parte do portfólio acadêmico, explorando:
+
+- Comunicação assíncrona em tempo real
+- Integração de diferentes protocolos de comunicação
+- Arquitetura distribuída
+- Desenvolvimento full stack com foco em sistemas interativos multiplayer
+
+## 👨‍💻 Autor
+
+**Gustavo Henrique**
+
+[LinkedIn](https://www.linkedin.com/in/gustavo-santos-633a21246)
