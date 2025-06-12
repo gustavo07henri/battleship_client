@@ -28,15 +28,15 @@
 }
 
 .grid td {
-    width: 40px; /* 400px / 10 colunas */
-    height: 40px; /* 400px / 10 linhas */
+    width: 40px;
+    height: 40px;
     text-align: center;
     border: 2px solid #000000;
     vertical-align: middle;
-    background-color: #f0f0f0; /* Opcional: para visualização */
     cursor: pointer;
     transition: all 0.3s;
     color: transparent;
+    position: relative; /* Adicionado para posicionamento absoluto do pseudo-elemento */
 }
 
 .grid td:hover {
@@ -60,7 +60,12 @@ td[data-state='miss'] {
 td[data-state='miss']::after {
   content: '•';
   color: white;
-  font-size: 1.2rem;
+  font-size: 40px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  line-height: 1;
 }
 
 td[data-state='hit'] {
@@ -69,9 +74,14 @@ td[data-state='hit'] {
 }
 
 td[data-state='hit']::after {
-  content: '✖';
-  color: white;
-  font-size: 1.2rem;
+    content: '✖';
+    color: white;
+    font-size: 40px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    line-height: 1;
 }
 
 td[data-state='ship'] {

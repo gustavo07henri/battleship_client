@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import {useState, useCallback, useMemo, useEffect} from 'react';
 import {configGame} from "../Configs/Config.ts";
 import {canPlaceShip, createShipsPayload, updateMyBoardWithShip} from "../Utils/BoardUtils.ts";
 import type {Ship, CellState} from "../Types/Types.ts";
@@ -8,6 +8,9 @@ import {LogoutButton} from "../LogoutButton/LogoutButton.tsx";
 import {getGameId, getPlayerId, setBordShipPositions} from "../Utils/LocalStorage.tsx";
 import 'bulma/css/bulma.min.css';
 import {SearchGame} from "./SearchGame.tsx";
+import type {IMessage} from "@stomp/stompjs";
+import {useWebSocket} from "../Context/WebSocketContext.tsx";
+import {setTurnPlay} from "../Utils/LocalStorage.tsx";
 
 // Interface para a resposta da API
 interface ApiResponse {
@@ -55,20 +58,21 @@ export function ShipPlacementBoard() {
 
     const [searchingGame, setSearchingGame] = useState(true);
     const [gameFound, setGameFound] = useState(false);
+    const [gameLoadingStatus, setGameLoadingStatus] = useState<string | null>(null);
+    const idGame = getGameId();
+    const idPlayer = getPlayerId();
     const navigate = useNavigate();
-    const gameId = getGameId()
-    const playerId = getPlayerId()
+    const { stompClient, isConnected } = useWebSocket() ?? {};
     const [myBoard, setMyBoard] = useState<CellState[][]>(
         Array(configGame.SIZE)
             .fill(Array)
-            .map(() => Array(configGame.SIZE).fill('empty'))
+            .map(() => Array(configGame.SIZE).fill(''))
     );
 
     const handleGameFound = () => {
         setGameFound(true);
         setSearchingGame(false);
     };
-
 
     // Estado da lista de navios
     const [ships, setShips] = useState<Ship[]>([
@@ -163,7 +167,8 @@ export function ShipPlacementBoard() {
 
         setIsLoading(true);
         try {
-            const payload = createShipsPayload(ships, gameId ?? null, playerId ?? null);
+            console.log("Enviando frota com idGame:", idGame, "idPlayer:", idPlayer);
+            const payload = createShipsPayload(ships, idGame ?? null, idPlayer ?? null);
             
             setBordShipPositions(payload.shipDtos);
 
@@ -177,9 +182,8 @@ export function ShipPlacementBoard() {
             if (!response.ok) {
                console.log(data.message || '❌ Falha ao enviar Board');
             }
-            
+
             console.log('✅ Criação bem sucedida:', data);
-            navigate('/game')
             alert('✅ Frota enviada com sucesso!');
         } catch (err) {
             console.error('Erro ao enviar frota:', err);
@@ -187,7 +191,42 @@ export function ShipPlacementBoard() {
         } finally {
             setIsLoading(false);
         }
-    }, [ships, gameId, playerId, navigate]);
+    }, [ships, idGame, idPlayer, navigate]);
+
+    useEffect(() => {
+        if (!stompClient || !isConnected || !idPlayer) return;
+
+        const notificationSubscription = stompClient.subscribe(`/topics/game-notify/${idPlayer}`, (message: IMessage) =>{
+            const body = JSON.parse(message.body);
+            console.log(body)
+            const {notification} = body;
+            if(notification === 'YOUR_TURN' || notification === 'NOT_YOU_TURN'){
+                setTurnPlay(notification)
+                console.log('Turno de jogada salvo')
+            }
+            if(notification === "WAITING_OTHER_PLAYER"){
+                setGameLoadingStatus(`WAITING_OTHER_PLAYER`)
+                console.log('✅✅✅✅ chego em WAITING_OTHER_PLAYER', notification)
+            }
+            if(notification === "RESUMED"){
+                setGameLoadingStatus('RESUMED')
+                console.log('✅✅✅✅ chego em Resumed' , notification)
+                navigate('/game')
+            }
+        });
+
+        const errorSubscription = stompClient.subscribe('/user/queue/errors', (message: IMessage) => {
+            const body = JSON.parse(message.body);
+            console.log('❌ Error na requisição:', body.msg);
+            alert(`❌ ${body.msg}`);
+            // Tratamento para erros recebidos
+        });
+
+        return () => {
+            errorSubscription.unsubscribe();
+            notificationSubscription.unsubscribe();
+        };
+    }, [stompClient, isConnected, idPlayer]);
 
     // Reseta o tabuleiro e as posições dos navios
     const resetBoard = useCallback(() => {
@@ -204,7 +243,11 @@ export function ShipPlacementBoard() {
     return (
         <div itemID="Init">
             <LogoutButton />
-
+            <div className="turn-status">
+                {gameLoadingStatus === `WAITING_OTHER_PLAYER` ?
+                    '⏳ Aguardando outro jogador' :
+                    '✅ Iniciando jogo'}
+            </div>
             {searchingGame && (
                 <div
                     style={{

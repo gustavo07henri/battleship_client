@@ -18,13 +18,8 @@ export function SearchGame({ onGameFound }: { onGameFound: () => void }) {
     const [gameCanceled, setGameCanceled] = useState('');
     const {stompClient, isConnected } = useWebSocket() ?? {};
     const [showConfirm, setShowConfirm] = useState(false);
-    const [resposta, setResposta] = useState<boolean | null>(null);
-    const [confirmHandler, setConfirmHandler] = useState<((value: boolean) => void) | null>(null);
     const navigate = useNavigate();
-
-    const handleConfirm = (valor: boolean) => {
-        setResposta(valor);
-    };
+    const [confirmHandler, setConfirmHandler] = useState<((value: boolean) => void) | null>(null);
 
     const handleSearch = async () => {
         setIsLoading(true);
@@ -82,6 +77,7 @@ export function SearchGame({ onGameFound }: { onGameFound: () => void }) {
     useEffect(() => {
         if(!isConnected || !stompClient) return;
         const gameStartedSubscription = stompClient.subscribe(`/topics/game-started/${idPlayer}`, async (message: IMessage) => {
+            console.log('✅✅✅ game started message')
 
             const body = JSON.parse(message.body);
             setGameId(body.gameId);
@@ -101,10 +97,11 @@ export function SearchGame({ onGameFound }: { onGameFound: () => void }) {
         const notificationSubscription = stompClient.subscribe(`/topics/game-notify/${idPlayer}`, (message: IMessage) =>{
             const body = JSON.parse(message.body);
 
-            const {notification} = body;
-           
+            const {notification, gameId} = body;
+            console.log(body)
             if(notification === "RESUMED"){
                 setSuccess('Iniciando jogo...');
+                setGameId(gameId);
                 navigate('/game')
             }
             if(notification === "CANCELLED"){

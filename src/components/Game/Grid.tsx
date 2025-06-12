@@ -49,7 +49,7 @@ export function GridGame({
                                     onDrop?.(e, rowIndex, colIndex)
                                 }
                             >
-                                {letters[rowIndex]}{colIndex}
+                                {/*{letters[rowIndex]}{colIndex}*/}
                             </td>
                         ))}
                     </tr>

@@ -6,21 +6,22 @@ import type {CellState, Coordinate} from "../Types/Types.ts";
 import {configGame} from "../Configs/Config.ts";
 import { useWebSocket } from '../Context/WebSocketContext.tsx';
 import { LogoutButton} from "../LogoutButton/LogoutButton.tsx";
-import { getBordShipPositions, getGameId, getPlayerId } from '../Utils/LocalStorage.tsx';
+import {getBordShipPositions, getGameId, getPlayerId, getTurnPlay} from '../Utils/LocalStorage.tsx';
 import { convertShipDtosToBoardState } from '../Utils/BoardUtils.ts';
 import 'bulma/css/bulma.min.css'
 import { useNavigate } from 'react-router-dom';
-
-
+import {RefreshButton} from "../../RefreshButton/RefreshButton.tsx";
+import {setTurnPlay} from "../Utils/LocalStorage.tsx";
 
 
 export function Board() {
     const SIZE = 10;
     const navigate = useNavigate();
     const { stompClient, isConnected } = useWebSocket() ?? {};
-    const [isPlayerTurn, setIsPlayerTurn] = useState(true);
+    const [isPlayerTurn, setIsPlayerTurn] = useState(false);
     const [idGame, setIdGame] = useState<string | null>(null);
     const [idPlayer, setIdPlayer] = useState<string | null>(null);
+    // const [stateElement, setStateElement] = useState<string | null>(null);
 
 
     const [myboard, setMyBoard] = useState<CellState[][]>(
@@ -30,18 +31,24 @@ export function Board() {
         Array(SIZE).fill(null).map(() => Array(SIZE).fill('empty'))
     );
 
-    // Carrega as posições dos navios do localStorage ao iniciar
     useEffect(() => {
         const gameId = getGameId();
         const playerId = getPlayerId();
-        
-        if (gameId) {
-            setIdGame(gameId);
-        }
-        if (playerId) {
-            setIdPlayer(playerId);
-        }
+        const turnPlay = getTurnPlay();
         const shipDtos = getBordShipPositions();
+
+        if (gameId) setIdGame(gameId);
+        if (playerId) setIdPlayer(playerId);
+
+        // Atualiza o estado inicial do turno
+        if (turnPlay) {
+            setIsPlayerTurn(turnPlay === 'YOUR_TURN');
+        } else {
+            // Por padrão, se não houver info, definimos como não sendo sua vez
+            setIsPlayerTurn(false);
+        }
+
+        // Atualiza o tabuleiro inicial do jogador
         if (shipDtos) {
             const boardState = convertShipDtosToBoardState(shipDtos);
             setMyBoard(boardState);
@@ -112,23 +119,38 @@ export function Board() {
             }
 
         });
-        const notificationSubscription = stompClient.subscribe(`/topics/game-notify/${idPlayer}`, (message: IMessage) =>{
+        const notificationSubscription = stompClient.subscribe(`/topics/game-notify/${idPlayer}`, (message: IMessage) => {
             const body = JSON.parse(message.body);
-            console.log(body)
-            const {notification} = body;
-            if(notification === "WINNER"){
-                const decision = confirm('🎉 Parabéns! Você venceu! \n Deseja Jogar novamente?');
-                (decision) ? navigate('/init') : navigate('/');
-            }
-            if(notification === "LOSER"){
-                const decision = confirm('😢 Você perdeu! Melhor sorte na próxima!');
-                (decision) ? navigate('/init') : navigate('/');
-            }
-            if(notification === "YOUR_TURN"){
-                setIsPlayerTurn(true);
-            }
-            if(notification === "NOT_YOUR_TURN"){
-                setIsPlayerTurn(false);
+            console.log('📢 Notificação recebida:', body);
+            const { notification } = body;
+
+            switch (notification) {
+                case "WINNER": {
+                    const decision = confirm('🎉 Parabéns! Você venceu! \n Deseja jogar novamente?');
+                    navigate(decision ? '/init' : '/');
+                    break;
+                }
+                case "LOSER": {
+                    const decision = confirm('😢 Você perdeu! Melhor sorte na próxima!');
+                    navigate(decision ? '/init' : '/');
+                    break;
+                }
+                case "YOUR_TURN": {
+                    console.log('🚀 Agora é sua vez');
+                    setIsPlayerTurn(true);
+                    setTurnPlay(notification);  // Atualiza localStorage se necessário
+                    break;
+                }
+                case "NOT_YOU_TURN": {
+                    console.log('⏳ Aguardando a vez do adversário');
+                    setIsPlayerTurn(false);
+                    setTurnPlay(notification);
+                    break;
+                }
+                default: {
+                    console.warn('⚠️ Notificação desconhecida recebida:', notification);
+                    break;
+                }
             }
         });
 
@@ -191,6 +213,7 @@ export function Board() {
 
             <div className="connection-status">
                 <LogoutButton/>
+                <RefreshButton/>
                 Status: {isConnected ? '✅ Conectado' : '❌ Desconectado'}
                 <div itemID='boards-for-game'>
                     <GridGame
