@@ -4,9 +4,10 @@ import {BrowserRouter, Routes, Route} from "react-router-dom";
 import {Login} from "./components/Login/Login.tsx";
 import {Signup} from "./components/Signup/Signup.tsx";
 import {ShipPlacementBoard} from "./components/Game/ShipPlacementBoard.tsx";
-//import { ProtectedRoute } from './components/Routes/ProtectedRout.tsx';
-import { SearchGame } from './components/Game/SearchGame.tsx';
+import { ProtectedRoute } from './components/Routes/ProtectedRout.tsx';
 import { WebSocketProvider } from './components/Context/WebSocketContext.tsx';
+import 'bulma/css/bulma.min.css'
+import logo from './assets/logo.webp';
 
 function App() {
 
@@ -14,15 +15,16 @@ function App() {
       <>
           <BrowserRouter>
             <WebSocketProvider>
+                <div style={{ textAlign: 'center', padding: '20px' }}>
+                    <img src={logo} alt="Logo do Jogo" style={{ maxWidth: '200px' }}/>
+                </div>
               <Routes>
                   <Route path={'/'} element={<Login/>}/>
                   <Route path={'/signup'} element={<Signup/>}/>
-                  <Route path={'/search-game'} element={
-                    <SearchGame/>}/>
                   <Route path={'/game'} element=
-                  { <Board/>}/>
+                  { <ProtectedRoute><Board/></ProtectedRoute>}/>
                   <Route path={'/init'} element={
-                    <ShipPlacementBoard/>}/>
+                    <ProtectedRoute><ShipPlacementBoard/></ProtectedRoute>}/>
               </Routes>
             </WebSocketProvider>
           </BrowserRouter>

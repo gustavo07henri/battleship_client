@@ -1,5 +1,6 @@
 import {useState} from "react";
 import { useNavigate } from 'react-router-dom';
+import 'bulma/css/bulma.min.css';
 // Rota Base da API, Localizada no arquivo .env
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -35,35 +36,47 @@ export function Signup(){
         }
     }
     return (
-        <div className="container">
-            <div className="form-wrapper">
-                <form
-                    className={'form_data'}
-                    onSubmit={handleSubmit}
-                >
-                    <label htmlFor="email">Email</label>
-                    <input
-                        id="email"
-                        value={email}
-                        type="email"
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="input"
-                        required
-                    />
-                    <label htmlFor="name">Nome</label>
-                    <input
-                        id="name"
-                        value={name}
-                        type="text"
-                        onChange={(e) => setName(e.target.value)}
-                        className="input"
-                        required
-                    />
-                    {erro && <p className="error">{erro}</p>}
-                    <button
-                        className="button"
-                        type="submit"
-                    >Cadastro</button>
+        <div className="container mt-5">
+            <div className="box" style={{ maxWidth: '400px', margin: '0 auto' }}>
+                <form onSubmit={handleSubmit}>
+                    <div className="field">
+                        <label htmlFor="email" className="label">Email</label>
+                        <div className="control">
+                            <input
+                                id="email"
+                                value={email}
+                                type="email"
+                                onChange={(e) => setEmail(e.target.value)}
+                                className="input"
+                                required
+                            />
+                        </div>
+                    </div>
+
+                    <div className="field">
+                        <label htmlFor="name" className="label">Nome</label>
+                        <div className="control">
+                            <input
+                                id="name"
+                                value={name}
+                                type="text"
+                                onChange={(e) => setName(e.target.value)}
+                                className="input"
+                                required
+                            />
+                        </div>
+                    </div>
+
+                    {erro && <p className="notification is-danger is-light">{erro}</p>}
+
+                    <div className="field">
+                        <button
+                            className="button is-success is-fullwidth"
+                            type="submit"
+                        >
+                            Cadastro
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>

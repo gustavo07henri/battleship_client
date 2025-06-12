@@ -28,15 +28,15 @@
 }
 
 .grid td {
-    width: 40px; /* 400px / 10 colunas */
-    height: 40px; /* 400px / 10 linhas */
+    width: 40px;
+    height: 40px;
     text-align: center;
     border: 2px solid #000000;
     vertical-align: middle;
-    background-color: #f0f0f0; /* Opcional: para visualização */
     cursor: pointer;
     transition: all 0.3s;
     color: transparent;
+    position: relative; /* Adicionado para posicionamento absoluto do pseudo-elemento */
 }
 
 .grid td:hover {
@@ -60,7 +60,12 @@ td[data-state='miss'] {
 td[data-state='miss']::after {
   content: '•';
   color: white;
-  font-size: 1.2rem;
+  font-size: 40px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  line-height: 1;
 }
 
 td[data-state='hit'] {
@@ -69,51 +74,19 @@ td[data-state='hit'] {
 }
 
 td[data-state='hit']::after {
-  content: '✖';
-  color: white;
-  font-size: 1.2rem;
+    content: '✖';
+    color: white;
+    font-size: 40px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    line-height: 1;
 }
 
 td[data-state='ship'] {
   background-color: #3498db;
 }
-/* Navios */
-/*.ship {*/
-/*    display: inline-block;*/
-/*    background: #3498db;*/
-/*    color: #fff;*/
-/*    border-radius: 6px;*/
-/*    margin: 8px 0;*/
-/*    text-align: center;*/
-/*    cursor: grab;*/
-/*    font-weight: bold;*/
-/*    transition: transform 0.3s, width 0.3s, height 0.3s;*/
-/*    !* Tamanho base para navio horizontal *!*/
-/*    width: calc(40px * var(--size, 1));*/
-/*    height: 40px;*/
-/*    line-height: 40px;*/
-/*}*/
-
-/*.ship {*/
-/*    display: inline-block;*/
-/*    background: #3498db;*/
-/*    color: #fff;*/
-/*    border-radius: 6px;*/
-/*    margin: 8px 0;*/
-/*    text-align: center;*/
-/*    cursor: grab;*/
-/*    font-weight: bold;*/
-/*    transition: transform 0.3s, width 0.3s, height 0.3s;*/
-/*    !* Tamanho base para navio horizontal *!*/
-/*    !*width: calc(40px * var(--size, 1));*!*/
-/*    !*height: 40px;*!*/
-/*    line-height: 40px;*/
-/*    width: 100%;*/
-/*    height: 100%;*/
-/*    border: 1px solid white;*/
-/*    box-sizing: border-box;*/
-/*    !*background-color: #3498db;*!*/
-/*}*/
 
 .ship > div {
     width: 100%;
@@ -155,3 +128,14 @@ td[data-state='ship'] {
 /* .invalid-drop {
   background-color: #ffcdd2 !important;
 } */
+
+.turn-status {
+    margin-top: 20px;
+    padding: 10px;
+    text-align: center;
+    font-size: 1.2em;
+    font-weight: bold;
+    background-color: #f0f0f0;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}

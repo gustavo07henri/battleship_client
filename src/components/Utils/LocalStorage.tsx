@@ -16,6 +16,22 @@ export function setPlayerId(id:string){
         return;
     }
 }
+export function setTurnPlay(turn:string){
+    try {
+        return localStorage.setItem('turn', turn );
+    }catch (error){
+        console.log('Error ao salvar no localStorage: ', error);
+        return;
+    }
+}
+export function getTurnPlay(){
+    try {
+        return localStorage.getItem('turn');
+    }catch (error){
+        console.log('Error ao salvar no localStorage: ', error);
+        return;
+    }
+}
 
 export function getGameId(){
     try {
@@ -54,12 +70,31 @@ export function setBordShipPositions(dtos: ShipDto[]) {
     }
 }
 
+export function getToken() {
+    try {
+        return localStorage.getItem('token') || '';
+    } catch (error) {
+        console.log('Erro ao acessar localStorage: ', error);
+        return '';
+    }
+}
+
+export function setToken(token: string) {
+    try {
+        return localStorage.setItem('token', token);
+    } catch (error) {
+        console.log('Erro ao salvar no localStorage: ', error);
+        return;
+    }
+}
 
 export function clearLocalStorage() {
     try {
         localStorage.removeItem('playerId');
         localStorage.removeItem('gameId');
         localStorage.removeItem('data');
+        localStorage.removeItem('token');
+        localStorage.removeItem('turn');
     } catch (error) {
         console.error('Error clearing localStorage:', error);
     }

@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import {useState, useCallback, useMemo, useEffect} from 'react';
 import {configGame} from "../Configs/Config.ts";
 import {canPlaceShip, createShipsPayload, updateMyBoardWithShip} from "../Utils/BoardUtils.ts";
 import type {Ship, CellState} from "../Types/Types.ts";
@@ -6,6 +6,11 @@ import {GridGame} from "./Grid.tsx";
 import { useNavigate } from 'react-router-dom';
 import {LogoutButton} from "../LogoutButton/LogoutButton.tsx";
 import {getGameId, getPlayerId, setBordShipPositions} from "../Utils/LocalStorage.tsx";
+import 'bulma/css/bulma.min.css';
+import {SearchGame} from "./SearchGame.tsx";
+import type {IMessage} from "@stomp/stompjs";
+import {useWebSocket} from "../Context/WebSocketContext.tsx";
+import {setTurnPlay} from "../Utils/LocalStorage.tsx";
 
 // Interface para a resposta da API
 interface ApiResponse {
@@ -50,15 +55,24 @@ function Shipyard({
 
 // Componente principal
 export function ShipPlacementBoard() {
-    // Estado do tabuleiro (10x10, inicialmente vazio)
+
+    const [searchingGame, setSearchingGame] = useState(true);
+    const [gameFound, setGameFound] = useState(false);
+    const [gameLoadingStatus, setGameLoadingStatus] = useState<string | null>(null);
+    const idGame = getGameId();
+    const idPlayer = getPlayerId();
     const navigate = useNavigate();
-    const gameId = getGameId()
-    const playerId = getPlayerId()
+    const { stompClient, isConnected } = useWebSocket() ?? {};
     const [myBoard, setMyBoard] = useState<CellState[][]>(
         Array(configGame.SIZE)
             .fill(Array)
-            .map(() => Array(configGame.SIZE).fill('empty'))
+            .map(() => Array(configGame.SIZE).fill(''))
     );
+
+    const handleGameFound = () => {
+        setGameFound(true);
+        setSearchingGame(false);
+    };
 
     // Estado da lista de navios
     const [ships, setShips] = useState<Ship[]>([
@@ -153,11 +167,10 @@ export function ShipPlacementBoard() {
 
         setIsLoading(true);
         try {
-            const payload = createShipsPayload(ships, gameId ?? null, playerId ?? null);
+            console.log("Enviando frota com idGame:", idGame, "idPlayer:", idPlayer);
+            const payload = createShipsPayload(ships, idGame ?? null, idPlayer ?? null);
             
             setBordShipPositions(payload.shipDtos);
-
-            console.log(`✅✅✅✅✅✅✅\n${payload.shipDtos}\n✅✅✅✅✅✅✅✅`)
 
             const response = await fetch(`${configGame.apiUrl}/game/init/create-board`, {
                 method: 'POST',
@@ -169,9 +182,8 @@ export function ShipPlacementBoard() {
             if (!response.ok) {
                console.log(data.message || '❌ Falha ao enviar Board');
             }
-            
+
             console.log('✅ Criação bem sucedida:', data);
-            navigate('/game')
             alert('✅ Frota enviada com sucesso!');
         } catch (err) {
             console.error('Erro ao enviar frota:', err);
@@ -179,7 +191,42 @@ export function ShipPlacementBoard() {
         } finally {
             setIsLoading(false);
         }
-    }, [ships, gameId, playerId, navigate]);
+    }, [ships, idGame, idPlayer, navigate]);
+
+    useEffect(() => {
+        if (!stompClient || !isConnected || !idPlayer) return;
+
+        const notificationSubscription = stompClient.subscribe(`/topics/game-notify/${idPlayer}`, (message: IMessage) =>{
+            const body = JSON.parse(message.body);
+            console.log(body)
+            const {notification} = body;
+            if(notification === 'YOUR_TURN' || notification === 'NOT_YOU_TURN'){
+                setTurnPlay(notification)
+                console.log('Turno de jogada salvo')
+            }
+            if(notification === "WAITING_OTHER_PLAYER"){
+                setGameLoadingStatus(`WAITING_OTHER_PLAYER`)
+                console.log('✅✅✅✅ chego em WAITING_OTHER_PLAYER', notification)
+            }
+            if(notification === "RESUMED"){
+                setGameLoadingStatus('RESUMED')
+                console.log('✅✅✅✅ chego em Resumed' , notification)
+                navigate('/game')
+            }
+        });
+
+        const errorSubscription = stompClient.subscribe('/user/queue/errors', (message: IMessage) => {
+            const body = JSON.parse(message.body);
+            console.log('❌ Error na requisição:', body.msg);
+            alert(`❌ ${body.msg}`);
+            // Tratamento para erros recebidos
+        });
+
+        return () => {
+            errorSubscription.unsubscribe();
+            notificationSubscription.unsubscribe();
+        };
+    }, [stompClient, isConnected, idPlayer]);
 
     // Reseta o tabuleiro e as posições dos navios
     const resetBoard = useCallback(() => {
@@ -194,28 +241,74 @@ export function ShipPlacementBoard() {
     }, []);
 
     return (
-        <div className="game-container">
-            <LogoutButton/>
-            <h2>Posicione seus navios</h2>
+        <div itemID="Init">
+            <LogoutButton />
+            <div className="turn-status">
+                {gameLoadingStatus === `WAITING_OTHER_PLAYER` ?
+                    '⏳ Aguardando outro jogador' :
+                    '✅ Iniciando jogo'}
+            </div>
+            {searchingGame && (
+                <div
+                    style={{
+                        position: "fixed",
+                        top: 0, left: 0, right: 0, bottom: 0,
+                        backgroundColor: "rgba(0,0,0,0.5)",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        zIndex: 9999,
+                    }}
+                >
+                    <div style={{background: "white", padding: 20, borderRadius: 8}}>
+                        <SearchGame onGameFound={handleGameFound} />
+                    </div>
 
-            {/* Componente para exibir os navios disponíveis */}
-            <Shipyard ships={ships} onDragStart={handleDragStart} onRotate={rotateShip} />
+                </div>
+            )}
+            {gameFound && <p>Jogo encontrado! Carregando...</p>}
+            <div className="box">
+                <div itemID="posicionamento">
+                    <div>
+                        <div className="is-flex is-justify-content-space-between is-align-items-center mb-4">
+                            <h2 className="title is-4">Posicione seus navios</h2>
 
-            {/* Componente para exibir o tabuleiro */}
-            <GridGame
-                board={myBoard}
-                letters={letters}
-                mode='placement'
-                onDrop={handleDrop}
-                onDragOver={handleDragOver}
-            />
+                        </div>
 
-            {/* Botões de ação */}
-            <div className="controls">
-                <button className='button' onClick={sendFleetToBackend} disabled={isLoading || ships.some(ship => !ship.position)}>
+                        <div className="mb-5">
+                            <Shipyard
+                                ships={ships}
+                                onDragStart={handleDragStart}
+                                onRotate={rotateShip}
+                            />
+                        </div>
+                    </div>
+                    <div className="mb-5">
+                        <GridGame
+                            board={myBoard}
+                            letters={letters}
+                            mode="placement"
+                            onDrop={handleDrop}
+                            onDragOver={handleDragOver}
+                        />
+                    </div>
+                </div>
+
+            </div>
+            <div className="buttons">
+                <button
+                    className="button is-link"
+                    onClick={sendFleetToBackend}
+                    disabled={isLoading || ships.some((ship) => !ship.position)}
+                >
                     {isLoading ? 'Enviando...' : '🚀 Confirmar Posicionamento'}
                 </button>
-                <button className='button' onClick={resetBoard} disabled={isLoading}>
+
+                <button
+                    className="button is-warning"
+                    onClick={resetBoard}
+                    disabled={isLoading}
+                >
                     🔄 Reiniciar Tabuleiro
                 </button>
             </div>

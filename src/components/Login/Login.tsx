@@ -1,6 +1,7 @@
 import {useState} from "react";
 import { useNavigate } from 'react-router-dom';
 import { setPlayerId } from "../Utils/LocalStorage.tsx";
+import 'bulma/css/bulma.min.css';
 // Rota Base da API, Localizada no arquivo .env
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -33,7 +34,7 @@ export function Login(){
 
             try {
                 setPlayerId(data.playerId)
-                navigate('/search-game');
+                navigate('/init');
                 console.log('login bem sucedido')
             } catch (storageError) {
                 console.error('Erro ao salvar playerId:', storageError);
@@ -45,44 +46,57 @@ export function Login(){
         }
     }
     return (
-        <div className="container">
-            <div className="form-wrapper">
-                <form className="form-data" onSubmit={handleSubmit}>
-                    <h2>Login</h2>
+        <div className="container mt-5">
+            <div className="box" style={{ maxWidth: '400px', margin: '0 auto' }}>
+                <form onSubmit={handleSubmit}>
+                    <h2 className="title is-4 has-text-centered">Login</h2>
 
-                    <label htmlFor="email">Email</label>
-                    <input
-                        id="email"
-                        value={email}
-                        type="email"
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="input"
-                        required
-                    />
+                    <div className="field">
+                        <label htmlFor="email" className="label">Email</label>
+                        <div className="control">
+                            <input
+                                id="email"
+                                value={email}
+                                type="email"
+                                onChange={(e) => setEmail(e.target.value)}
+                                className="input"
+                                required
+                            />
+                        </div>
+                    </div>
 
-                    <label htmlFor="name">Nome</label>
-                    <input
-                        id="name"
-                        value={name}
-                        type="text"
-                        onChange={(e) => setName(e.target.value)}
-                        className="input"
-                        required
-                    />
+                    <div className="field">
+                        <label htmlFor="name" className="label">Nome</label>
+                        <div className="control">
+                            <input
+                                id="name"
+                                value={name}
+                                type="text"
+                                onChange={(e) => setName(e.target.value)}
+                                className="input"
+                                required
+                            />
+                        </div>
+                    </div>
 
-                    {erro && <p className="error">{erro}</p>}
+                    {erro && <p className="notification is-danger is-light">{erro}</p>}
 
-                    <button type="submit" className="button">Login</button>
+                    <div className="field">
+                        <button type="submit" className="button is-primary is-fullwidth">Login</button>
+                    </div>
                 </form>
 
-                <button
-                    type="button"
-                    className="button secondary"
-                    onClick={() => navigate('/signup')}
-                >
-                    Criar Conta
-                </button>
+                <div className="field">
+                    <button
+                        type="button"
+                        className="button is-light is-fullwidth"
+                        onClick={() => navigate('/signup')}
+                    >
+                        Criar Conta
+                    </button>
+                </div>
             </div>
         </div>
     );
+
 }

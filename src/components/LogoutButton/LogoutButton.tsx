@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { clearLocalStorage } from "../Utils/LocalStorage.tsx";
+import 'bulma/css/bulma.min.css'
 
 export function LogoutButton() {
     const navigate = useNavigate();
@@ -10,9 +11,9 @@ export function LogoutButton() {
     };
 
     return (
-        <div className="logout-button-container">
-            <button 
-                className="button" 
+        <div className="container mt-4 has-text-right">
+            <button
+                className="button is-danger"
                 onClick={handleLogout}
             >
                 Sair
