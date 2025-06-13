@@ -9,22 +9,16 @@ import {useNavigate} from "react-router-dom";
 export function SearchGame({ onGameFound }: { onGameFound: () => void }) {
 
     const idPlayer = getPlayerId();
-    //const navigate = useNavigate();
-    
+
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
-    const [waitingPlayer, setWaitingPlayer] = useState('');
-    const [gameCanceled, setGameCanceled] = useState('');
+    const [message, setMessage] = useState<{ type: 'error' | 'info' | 'success', text: string } | null>(null);
     const {stompClient, isConnected } = useWebSocket() ?? {};
     const [showConfirm, setShowConfirm] = useState(false);
     const navigate = useNavigate();
     const [confirmHandler, setConfirmHandler] = useState<((value: boolean) => void) | null>(null);
+    const [confirmMessage, setConfirmMessage] = useState('');
 
     const handleSearch = async () => {
-        setIsLoading(true);
-        setError('');
-        setSuccess('');
         try {
             const response = await fetch(`${configGame.apiUrl}/game/init/search-game`, {
                 method: 'POST',
@@ -37,7 +31,7 @@ export function SearchGame({ onGameFound }: { onGameFound: () => void }) {
                 setIsLoading(true);
             }
             if (response.status == 409){
-                const userChoice = await askForConfirmation(); // Aguarda a resposta do usuário
+                const userChoice = await askForConfirmation('Você tem um jogo em aberto, deseja continuar?');
                 const status = userChoice ? 'YES' : 'NOT';
                 const response = await fetch(`${configGame.apiUrl}/game/init/rescue-game`, {
                     method: 'POST',
@@ -50,24 +44,36 @@ export function SearchGame({ onGameFound }: { onGameFound: () => void }) {
                 }
                 setShowConfirm(false);
             }
+            if (response.status == 422){
+                const userChoice = await askForConfirmation('Você já esta aguardando um jogo, deseja continuar?');
+                const status = userChoice ? 'YES' : 'NOT';
+                const response = await fetch(`${configGame.apiUrl}/game/init/waiting-handle-game`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ playerId: idPlayer, statusForRescue: status }),
+                });
+
+                if(!response.ok){
+                    console.log('deu errado');
+                }
+                setShowConfirm(false);
+            }
 
         } catch (error) {
-            setError('Erro ao buscar jogo');
+            setMessage({ type: 'error', text: 'Erro ao buscar jogo' });
             console.log(error)
-        } finally {
-            setIsLoading(false);
         }
     };
 
-    const askForConfirmation = (): Promise<boolean> => {
+    const askForConfirmation = (message: string): Promise<boolean> => {
         return new Promise((resolve) => {
+            setConfirmMessage(message);
             const handleConfirm = (resposta: boolean) => {
                 setShowConfirm(false);
                 resolve(resposta);
             };
-    
+
             setShowConfirm(() => {
-                // Envia o confirm handler como um closure que resolve a promise
                 setConfirmHandler(() => handleConfirm);
                 return true;
             });
@@ -81,9 +87,8 @@ export function SearchGame({ onGameFound }: { onGameFound: () => void }) {
 
             const body = JSON.parse(message.body);
             setGameId(body.gameId);
-            
-            const response = 'Iniciando jogo...';
-            setSuccess(response);
+
+            setMessage({ type: 'success', text: 'Iniciando jogo...' });
             onGameFound()
             console.log(`✅ mensagem recebida: ${body}`)
         });
@@ -100,15 +105,18 @@ export function SearchGame({ onGameFound }: { onGameFound: () => void }) {
             const {notification, gameId} = body;
             console.log(body)
             if(notification === "RESUMED"){
-                setSuccess('Iniciando jogo...');
+                setMessage({ type: 'success', text: 'Iniciando jogo...' });
                 setGameId(gameId);
+                setIsLoading(false)
                 navigate('/game')
             }
             if(notification === "CANCELLED"){
-                setGameCanceled('Jogo Cancelado');
+                setMessage({ type: 'info', text: 'Jogo Cancelado' });
+                setIsLoading(false)
             }
             if(notification === "WAITING_OTHER_PLAYER"){
-                setWaitingPlayer('Aguardando outro jogador')
+                setMessage({ type: 'info', text: 'Aguardando outro jogador' });
+                setIsLoading(true);
             }
         });
 
@@ -118,7 +126,6 @@ export function SearchGame({ onGameFound }: { onGameFound: () => void }) {
             notificationSubscription.unsubscribe();
         };
     }, [onGameFound]);
-
 
     return (
         <div itemID="search-container">
@@ -134,21 +141,28 @@ export function SearchGame({ onGameFound }: { onGameFound: () => void }) {
                 </button>
             </div>}
 
-            {error && <p className="notification is-danger mt-3">{error}</p>}
-            {isLoading && !showConfirm && <p className="notification is-info mt-3">Buscando jogo...</p>}
-            {waitingPlayer && <p className="notification is-info mt-3">{waitingPlayer}</p>}
-            {gameCanceled && <p className="notification is-info mt-3">{gameCanceled}</p>}
-            {success && <p className="notification is-success mt-3">{success}</p>}
-            {showConfirm && confirmHandler && ( <ConfirmButton onConfirm={confirmHandler} />)}
+            {message && (
+                <p className={`notification is-${message.type} mt-3`}>
+                    {message.text}
+                </p>
+            )}
+            {showConfirm && confirmHandler && ( <ConfirmButton onConfirm={confirmHandler} msg={confirmMessage} />)}
         </div>
     );
 
 }
 
-export function ConfirmButton({ onConfirm }: { onConfirm: (confirm: boolean) => void }) {
+export function ConfirmButton(
+    {
+        onConfirm,
+        msg
+    }: {
+        onConfirm: (confirm: boolean) => void;
+        msg:string
+    }) {
     return (
         <div itemID="confirm-buttons">
-            <h1 className="title is-5" >Você tem um jogo em aberto, deseja continuar?</h1>
+            <h1 className="title is-5" >{msg}</h1>
             <div itemID="style-buttons">
                 <button 
                 className="button is-danger is-large"

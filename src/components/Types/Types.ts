@@ -13,7 +13,12 @@ export interface Ship {
 export interface ShipDto{
     coordinates: Coordinate[];
 }
-
+export interface Play{
+    coordinate: Coordinate;
+    result: string;
+    playerId: string;
+    target: string;
+}
 export interface ShipsPayload{
     shipDtos : ShipDto [];
     gameId : string;

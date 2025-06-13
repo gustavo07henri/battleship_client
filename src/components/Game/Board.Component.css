@@ -22,8 +22,8 @@
 
 .grid table {
     border-collapse: collapse;
-    width: 600px; /* Ajuste conforme necessário */
-    height: 600px; /* Ajuste conforme necessário */
+    width: 600px;
+    height: 600px;
     margin: 0 auto;
 }
 
@@ -36,11 +36,11 @@
     cursor: pointer;
     transition: all 0.3s;
     color: transparent;
-    position: relative; /* Adicionado para posicionamento absoluto do pseudo-elemento */
+    position: relative;
 }
 
 .grid td:hover {
-    background-color: #e0e0e0; /* Opcional: para feedback visual */
+    background-color: #e0e0e0;
     transform: scale(1.05);
 }
 
@@ -124,10 +124,6 @@ td[data-state='ship'] {
 .valid-drop {
   background-color: #c8e6c9 !important;
 }
-
-/* .invalid-drop {
-  background-color: #ffcdd2 !important;
-} */
 
 .turn-status {
     margin-top: 20px;

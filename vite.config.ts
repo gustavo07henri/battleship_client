@@ -7,4 +7,9 @@ export default defineConfig({
   define: {
     global: 'window', // Fornece 'global' como alias para 'window'
   },
+  server: {
+    allowedHosts: [
+      'f20e-2804-d45-d905-2f00-5dab-81fe-3285-8fc.ngrok-free.app'
+    ]
+  }
 });

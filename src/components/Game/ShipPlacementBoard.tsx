@@ -66,7 +66,7 @@ export function ShipPlacementBoard() {
     const [myBoard, setMyBoard] = useState<CellState[][]>(
         Array(configGame.SIZE)
             .fill(Array)
-            .map(() => Array(configGame.SIZE).fill(''))
+            .map(() => Array(configGame.SIZE).fill('empty'))
     );
 
     const handleGameFound = () => {
